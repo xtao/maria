@@ -4,6 +4,7 @@
 import os
 from maria.config import config
 
+
 class BaseInterface(object):
     def check_user(self, name):
         raise NotImplementedError()
@@ -25,4 +26,8 @@ class BaseInterface(object):
         return None
 
     def get_repo_path(self):
+        # hotfix
+        config.repos_path = os.path.expanduser(config.repos_path)
+        self.repo = os.path.expanduser(self.repo)
+
         return os.path.join(config.repos_path, self.repo)

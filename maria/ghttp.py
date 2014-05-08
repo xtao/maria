@@ -138,7 +138,8 @@ class GHTTPServer(object):
         self.reqfile = reqfile
         if cmd == "not_allowed":
             return self.render_method_not_allowed()
-        self.dir = self.get_git_dir(path)
+
+        self.dir = self.get_git_dir()
         if not self.dir:
             return self.render_not_found()
         func = getattr(self, cmd)
@@ -363,20 +364,22 @@ class GHTTPServer(object):
         else:
             return setting == 'true'
 
-    def get_git_dir(self, path):
-        if not self.is_subpath(self.interface.get_repo_path, config.repos_path):
+    def get_git_dir(self):
+        abspath = self.interface.get_repo_path()
+        if not self.is_subpath(abspath, config.repos_path):
             return False
         if exists(config.repos_path):  # TODO: check is a valid git directory
-            return path
+            return abspath
         return False
 
     def is_subpath(self, path, checkpath):
         path = unquote(path)
         checkpath = unquote(checkpath)
         # Remove trailing slashes from filepath
-        checkpath = checkpath.replace("\/+$", '')
+        checkpath = re.sub("\/+$", '', checkpath)
         if re.match("^%s(\/|$)" % checkpath, path):
             return True
+        return False
 
 
 class GHTTPInterface(BaseInterface):

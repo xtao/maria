@@ -24,8 +24,10 @@ class Git(object):
         return {"advertise_refs": "--advertise-refs"}
 
     def command(self, cmd, opts={}, callback=None, env=None):
+
         cmd = "%s %s %s" % (self.git_path, cmd, " ".join(opts.get("args")))
         cmd = shlex.split(cmd)
+
         p = subprocess.Popen(cmd,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
@@ -38,6 +40,7 @@ class Git(object):
                 p.stdin.write(data)
             return callback(p)
         result, err = p.communicate()
+
         return result
 
     def upload_pack(self, repository_path, opts=None, callback=None, env=None):
