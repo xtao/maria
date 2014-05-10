@@ -16,16 +16,18 @@ def chdir(dir):
 
 class Git(object):
 
-    def __init__(self, path=None):
-        self.git_path = path if path else 'git'
+    def __init__(self, dir=''):
+        self.git_path = os.path.join(dir, 'git')
 
     @property
     def command_options(self):
         return {"advertise_refs": "--advertise-refs"}
 
     def command(self, cmd, opts={}, callback=None, env=None):
+
         cmd = "%s %s %s" % (self.git_path, cmd, " ".join(opts.get("args")))
         cmd = shlex.split(cmd)
+
         p = subprocess.Popen(cmd,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
@@ -38,6 +40,7 @@ class Git(object):
                 p.stdin.write(data)
             return callback(p)
         result, err = p.communicate()
+
         return result
 
     def upload_pack(self, repository_path, opts=None, callback=None, env=None):

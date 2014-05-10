@@ -8,10 +8,11 @@ import select
 from os import access
 from os.path import join, exists, getmtime, getsize
 from urllib import unquote
-from maria.libs.date import format_date_time
 from maria.libs.git import Git
-from maria.libs.auth import decode, DecodeError
 from maria.config import config
+from maria.base import BaseInterface
+from maria.libs.date import format_date_time
+from maria.libs.auth import decode, DecodeError
 
 
 def callback(p):
@@ -84,12 +85,12 @@ class GHTTPServer(object):
     def __init__(self):
         self.headers = {}
         self.interface = None
-        self.git = Git(config.git_path)
+        self.git = Git(config.git_dir)
 
     def __call__(self, environ, start_response):
         self.headers = {}
         self.env = environ
-        self.interface = config.ghttp_interface()
+        self.interface = config.interface()
         body = self.call()
         start_response(self.status, self.headers.items())
         return body
@@ -137,7 +138,8 @@ class GHTTPServer(object):
         self.reqfile = reqfile
         if cmd == "not_allowed":
             return self.render_method_not_allowed()
-        self.dir = self.get_git_dir(path)
+
+        self.dir = self.get_git_dir()
         if not self.dir:
             return self.render_not_found()
         func = getattr(self, cmd)
@@ -362,29 +364,25 @@ class GHTTPServer(object):
         else:
             return setting == 'true'
 
-    def get_git_dir(self, path):
-        root = self.get_project_root()
-        path = join(root, path)
-        if not self.is_subpath(path, root):
+    def get_git_dir(self):
+        abspath = self.interface.get_repo_path()
+        if not self.is_subpath(abspath, config.repos_path):
             return False
-        if exists(path):  # TODO: check is a valid git directory
-            return path
+        if exists(config.repos_path):  # TODO: check is a valid git directory
+            return abspath
         return False
-
-    def get_project_root(self):
-        root = config.repos_path or os.getcwd()
-        return root
 
     def is_subpath(self, path, checkpath):
         path = unquote(path)
         checkpath = unquote(checkpath)
         # Remove trailing slashes from filepath
-        checkpath = checkpath.replace("\/+$", '')
+        checkpath = re.sub("\/+$", '', checkpath)
         if re.match("^%s(\/|$)" % checkpath, path):
             return True
+        return False
 
 
-class GHTTPInterface(object):
+class GHTTPInterface(BaseInterface):
 
     def __init__(self):
         self.message = ''
@@ -417,8 +415,3 @@ class GHTTPInterface(object):
         self.command = cmd
         return True
 
-    def get_env(self):
-        return None
-
-    def get_repo_path(self):
-        return None
