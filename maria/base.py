@@ -1,5 +1,4 @@
-#!/usr/local/bin/python2.7
-#coding:utf-8
+# -*- coding: utf-8 -*-
 
 import os
 from maria.config import config

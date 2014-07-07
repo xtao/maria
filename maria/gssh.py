@@ -1,5 +1,4 @@
-#!/usr/bin/python
-#coding:utf-8
+# -*- coding: utf-8 -*-
 
 import os
 import select
@@ -14,7 +13,7 @@ from maria.base import BaseInterface
 logger = logging.getLogger(__name__)
 
 
-class GSSHServer(paramiko.ServerInterface):
+class GSSHServerInterface(paramiko.ServerInterface):
 
     def __init__(self):
         self.command = None
@@ -33,7 +32,7 @@ class GSSHServer(paramiko.ServerInterface):
         hex_fingerprint = utils.hex_key(key)
         logger.info('Auth attempt with key: %s' % hex_fingerprint)
         if not self.interface.check_user(username) \
-            or not self.interface.check_key(key):
+                or not self.interface.check_key(key):
             return paramiko.AUTH_FAILED
         return paramiko.AUTH_SUCCESSFUL
 
@@ -110,6 +109,7 @@ class GSSHServer(paramiko.ServerInterface):
         channel.close()
         logger.info('Command execute finished')
 
+
 class GSSHInterface(BaseInterface):
 
     def __init__(self):
@@ -157,4 +157,3 @@ class GSSHInterface(BaseInterface):
         if config.git_dir:
             command[0] = os.path.join(config.git_dir, command[0])
         return True
-
